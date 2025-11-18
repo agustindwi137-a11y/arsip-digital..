@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Persuratan Digital - Administrasi PU Bina Marga</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* Mengaplikasikan font Inter ke seluruh dokumen */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f4f7f9; /* Warna latar belakang abu-abu muda */
+        }
+        /* Style untuk sidebar, menggunakan variasi warna biru gelap */
+        .sidebar {
+            background-color: #1a365d; /* Biru Navy gelap, professional */
+            transition: width 0.3s ease;
+        }
+        /* Style untuk link aktif di sidebar */
+        .nav-link.active {
+            background-color: #2b5cb9; /* Biru yang lebih cerah untuk indikator aktif */
+            color: white;
+            border-left: 4px solid #4299e1; /* Garis biru muda sebagai aksen */
+        }
+        /* Style untuk kartu statistik */
+        .stat-card {
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s, box-shadow 0.2s;
+            background: #ffffff;
+            border-radius: 12px;
+            /* Inovasi: Gradient ringan di latar belakang kartu */
+            background-image: linear-gradient(to bottom right, #ffffff, #f0f8ff); 
+        }
+        .stat-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+        }
+        /* Warna utama biru (primary blue) */
+        .blue-primary {
+            color: #2b5cb9;
+        }
+        .bg-blue-primary {
+            background-color: #2b5cb9;
+        }
+        /* Warna aksen biru (light blue accent) */
+        .blue-accent {
+            color: #4299e1;
+        }
+        /* Scrollbar kustom */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 8px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background-color: #90a4ae;
+            border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background-color: #e3f2fd;
+        }
+        /* Style untuk Header Selamat Datang */
+        .welcome-header {
+            background-image: linear-gradient(to right, #4299e1, #2b5cb9); /* Gradient Inovatif */
+            color: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body class="flex h-screen overflow-hidden">
+
+    <aside id="sidebar" class="sidebar w-64 flex-shrink-0 flex flex-col p-4 text-white custom-scrollbar overflow-y-auto">
+        <div class="mb-8 p-2">
+            <h1 class="text-2xl font-extrabold flex items-center tracking-wide">
+                <i data-lucide="mail-check" class="w-7 h-7 mr-2 text-blue-accent"></i>
+                <span class="text-blue-accent">Digital</span> Docs
+            </h1>
+        </div>
+
+        <nav class="flex-grow space-y-2">
+            <a href="#" class="nav-link flex items-center p-3 rounded-lg text-lg font-medium hover:bg-blue-600 transition duration-150 active" data-page="dashboard">
+                <i data-lucide="layout-dashboard" class="w-5 h-5 mr-3"></i>
+                Dashboard
+            </a>
+            <a href="#" class="nav-link flex items-center p-3 rounded-lg text-lg font-medium hover:bg-blue-600 transition duration-150" data-page="surat-masuk">
+                <i data-lucide="inbox" class="w-5 h-5 mr-3"></i>
+                Surat Masuk
+            </a>
+            <a href="#" class="nav-link flex items-center p-3 rounded-lg text-lg font-medium hover:bg-blue-600 transition duration-150" data-page="surat-keluar">
+                <i data-lucide="send" class="w-5 h-5 mr-3"></i>
+                Surat Keluar
+            </a>
+        </nav>
+
+        <div class="mt-auto p-4 text-sm bg-[#122a4a] rounded-xl border border-[#2b5cb9]">
+            <p class="font-semibold text-blue-accent">Proyek Administrasi Perkantoran</p>
+            <p class="text-gray-300">Dinas Pekerjaan Umum Bina Marga</p>
+            <p class="text-xs mt-1 text-gray-400">Sistem Tata Kelola Arsip Digital</p>
+        </div>
+    </aside>
+
+    <main class="flex-grow p-8 overflow-y-auto custom-scrollbar">
+        <header class="flex justify-between items-center mb-10 pb-4 border-b border-gray-200">
+            <h2 id="page-title" class="text-3xl font-extrabold text-[#1a365d]">Dashboard Utama</h2>
+        </header>
+        
+        <div id="content-area">
+            </div>
+
+    </main>
+
+    <div id="custom-modal" class="fixed inset-0 bg-gray-900 bg-opacity-50 hidden items-center justify-center z-50">
+        <div class="bg-white p-6 rounded-lg shadow-xl max-w-sm w-full">
+            <h3 id="modal-title" class="text-xl font-bold mb-4 text-blue-primary">Pesan Sistem</h3>
+            <p id="modal-message" class="text-gray-700 mb-6"></p>
+            <div class="flex justify-end space-x-3">
+                <button onclick="closeModal()" class="bg-blue-accent text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition duration-150">Tutup</button>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        // Data Dummy untuk Grafik
+        const chartData = {
+            suratMasuk: [20, 35, 48, 40, 55, 60],
+            suratKeluar: [15, 28, 32, 30, 45, 50],
+            labels: ['Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov 2025']
+        };
+
+        // Fungsi untuk menginisialisasi ikon Lucide dan Chart
+        document.addEventListener('DOMContentLoaded', (event) => {
+            lucide.createIcons();
+            loadPage('dashboard'); // Memuat halaman dashboard saat pertama kali
+        });
+
+        // =========================================================
+        // Logika Navigasi dan Konten Halaman
+        // =========================================================
+
+        const pageTitle = document.getElementById('page-title');
+        const contentArea = document.getElementById('content-area');
+        const navLinks = document.querySelectorAll('.nav-link');
+
+        // Event listener untuk navigasi
+        navLinks.forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                const page = this.getAttribute('data-page');
+                loadPage(page);
+                
+                // Mengubah status aktif pada sidebar
+                navLinks.forEach(l => l.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+
+        /**
+         * Memuat konten halaman berdasarkan nama halaman.
+         * @param {string} pageName - Nama halaman ('dashboard', 'surat-masuk', 'surat-keluar')
+         */
+        function loadPage(pageName) {
+            let title = '';
+            let content = '';
+
+            switch (pageName) {
+                case 'dashboard':
+                    title = 'Dashboard Utama';
+                    content = generateDashboardContent();
+                    break;
+                case 'surat-masuk':
+                    title = 'Tata Kelola Surat Masuk';
+                    content = generateSuratMasukContent();
+                    break;
+                case 'surat-keluar':
+                    title = 'Tata Kelola Surat Keluar';
+                    content = generateSuratKeluarContent();
+                    break;
+                default:
+                    title = 'Halaman Tidak Ditemukan';
+                    content = '<p class="text-red-500">Konten untuk halaman ini belum tersedia.</p>';
+            }
+
+            pageTitle.textContent = title;
+            contentArea.innerHTML = content;
+            lucide.createIcons(); // Re-render ikon setelah konten baru dimuat
+
+            if (pageName === 'dashboard') {
+                // Inisialisasi Chart hanya di halaman dashboard
+                initCharts();
+            }
+        }
+
+
+        // =========================================================
+        // Fungsi Generator Konten Halaman
+        // =========================================================
+
+        /**
+         * Menghasilkan HTML untuk Halaman Dashboard.
+         */
+        function generateDashboardContent() {
+            return `
+                <div class="welcome-header mb-8 flex justify-between items-center">
+                    <div>
+                        <h3 class="text-2xl font-bold">Selamat Datang, Peserta Magang Administrasi! 👋</h3>
+                        <p class="text-sm mt-1 opacity-90">Pantau dan kelola seluruh aktivitas persuratan digital Dinas PU Bina Marga dengan mudah.</p>
+                    </div>
+                    <div class="w-12 h-12 bg-white text-blue-primary rounded-full flex items-center justify-center font-bold text-lg flex-shrink-0">
+                        PM
+                    </div>
+                </div>
+
+                <section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+                    <div class="stat-card p-6 bg-blue-100/50 hover:bg-blue-100 border-l-4 border-blue-primary">
+                        <div class="flex justify-between items-start">
+                            <i data-lucide="inbox" class="w-8 h-8 blue-primary"></i>
+                            <i data-lucide="arrow-up-right" class="w-5 h-5 text-green-500"></i>
+                        </div>
+                        <p class="text-sm font-semibold text-gray-500 mt-4 uppercase">Surat Masuk (Bulan Ini)</p>
+                        <p class="text-4xl font-extrabold blue-primary mt-1">48</p>
+                        <p class="text-xs text-gray-400 mt-2">Peningkatan 12% dari bulan lalu.</p>
+                    </div>
+                    
+                    <div class="stat-card p-6 bg-green-100/50 hover:bg-green-100 border-l-4 border-green-600">
+                        <div class="flex justify-between items-start">
+                            <i data-lucide="send" class="w-8 h-8 text-green-600"></i>
+                            <i data-lucide="arrow-down-right" class="w-5 h-5 text-red-500"></i>
+                        </div>
+                        <p class="text-sm font-semibold text-gray-500 mt-4 uppercase">Surat Keluar (Bulan Ini)</p>
+                        <p class="text-4xl font-extrabold text-green-600 mt-1">32</p>
+                        <p class="text-xs text-gray-400 mt-2">Penurunan 5% dari bulan lalu.</p>
+                    </div>
+
+                    <div class="stat-card p-6 bg-red-100/50 hover:bg-red-100 border-l-4 border-red-500">
+                        <div class="flex justify-between items-start">
+                            <i data-lucide="alert-triangle" class="w-8 h-8 text-red-600"></i>
+                        </div>
+                        <p class="text-sm font-semibold text-gray-500 mt-4 uppercase">Perlu Disposisi Prioritas</p>
+                        <p class="text-4xl font-extrabold text-red-600 mt-1">5</p>
+                        <p class="text-xs text-gray-400 mt-2">Surat yang harus ditindaklanjuti segera.</p>
+                    </div>
+
+                    <div class="stat-card p-6 bg-yellow-100/50 hover:bg-yellow-100 border-l-4 border-yellow-500">
+                        <div class="flex justify-between items-start">
+                            <i data-lucide="archive" class="w-8 h-8 text-yellow-600"></i>
+                        </div>
+                        <p class="text-sm font-semibold text-gray-500 mt-4 uppercase">Total Arsip Digital</p>
+                        <p class="text-4xl font-extrabold text-yellow-600 mt-1">1,250</p>
+                        <p class="text-xs text-gray-400 mt-2">Jumlah total dokumen tersimpan.</p>
+                    </div>
+                </section>
+
+                <section class="mb-10 p-6 bg-white rounded-xl shadow-lg border border-gray-100">
+                    <h3 class="text-xl font-bold mb-4 text-[#1a365d] border-b pb-2 flex items-center">
+                        <i data-lucide="bar-chart-2" class="w-5 h-5 mr-2 blue-primary"></i>
+                        Statistik Volume Surat Bulanan (6 Bulan Terakhir)
+                    </h3>
+                    <div class="h-80">
+                        <canvas id="suratChart"></canvas>
+                    </div>
+                </section>
+
+                <section class="bg-white p-6 rounded-xl shadow-lg">
+                    <h3 class="text-xl font-bold mb-4 text-[#1a365d] border-b pb-2 flex items-center">
+                        <i data-lucide="activity" class="w-5 h-5 mr-2 blue-primary"></i>
+                        Aktivitas Terbaru
+                    </h3>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-blue-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">No. Surat</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Perihal</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tanggal</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Jenis</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-200">
+                                ${generateTableRow('001/PUPR/VIII/25', 'Permintaan Data Proyek Jalan', '15 Nov 2025', 'Masuk', 'Segera Disposisi', 'red')}
+                                ${generateTableRow('035/PUPR/KLR/25', 'Balasan Undangan Rapat', '14 Nov 2025', 'Keluar', 'Terkirim', 'green')}
+                                ${generateTableRow('002/PUPR/VIII/25', 'Laporan Progres Pembangunan', '13 Nov 2025', 'Masuk', 'Proses Disposisi', 'yellow')}
+                                ${generateTableRow('036/PUPR/KLR/25', 'Surat Tugas Lapangan', '12 Nov 2025', 'Keluar', 'Telah Diarsip', 'blue')}
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+            `;
+        }
+        
+        /**
+         * Menginisialisasi Chart.js untuk menampilkan grafik statistik.
+         */
+        function initCharts() {
+            const ctx = document.getElementById('suratChart');
+            if (!ctx) return; // Pastikan elemen ada
+
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: chartData.labels,
+                    datasets: [
+                        {
+                            label: 'Surat Masuk',
+                            data: chartData.suratMasuk,
+                            backgroundColor: '#2b5cb9', // Warna biru primary
+                            borderColor: '#2b5cb9',
+                            borderWidth: 1,
+                            borderRadius: 4
+                        },
+                        {
+                            label: 'Surat Keluar',
+                            data: chartData.suratKeluar,
+                            backgroundColor: '#4299e1', // Warna biru accent
+                            borderColor: '#4299e1',
+                            borderWidth: 1,
+                            borderRadius: 4
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Jumlah Surat'
+                            }
+                        },
+                        x: {
+                             title: {
+                                display: true,
+                                text: 'Bulan'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false
+                        }
+                    }
+                }
+            });
+        }
+
+
+        /**
+         * Menghasilkan HTML untuk Halaman Surat Masuk.
+         */
+        function generateSuratMasukContent() {
+            return `
+                <div class="flex justify-between items-center mb-6">
+                    <p class="text-gray-600">Daftar lengkap surat masuk yang perlu ditindaklanjuti dan diarsipkan.</p>
+                    <button onclick="showMessage('Fungsi Tambah Surat Masuk')" class="flex items-center bg-blue-primary text-white px-4 py-2 rounded-lg font-semibold hover:bg-blue-600 transition shadow-md">
+                        <i data-lucide="plus" class="w-4 h-4 mr-2"></i>
+                        Catat Surat Baru
+                    </button>
+                </div>
+
+                <div class="bg-white p-6 rounded-xl shadow-lg">
+                    <div class="mb-4 flex space-x-4">
+                        <input type="text" placeholder="Cari berdasarkan No. Surat atau Perihal..." class="p-2 border border-gray-300 rounded-lg w-full md:w-1/3 focus:ring-blue-accent focus:border-blue-accent">
+                        <select class="p-2 border border-gray-300 rounded-lg focus:ring-blue-accent focus:border-blue-accent">
+                            <option>Semua Status</option>
+                            <option>Belum Didisposisi</option>
+                            <option>Sudah Didisposisi</option>
+                            <option>Selesai</option>
+                        </select>
+                    </div>
+                    
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-blue-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tanggal Diterima</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">No. Surat</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pengirim</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Perihal</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status Disposisi</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-200">
+                                ${generateTableRowWithButton('15 Nov 2025', '001/PUPR/VIII/25', 'PT. Bangun Jaya', 'Permintaan Data Proyek Jalan', 'Belum Didisposisi', 'red', 'Disposisi')}
+                                ${generateTableRowWithButton('13 Nov 2025', '002/PUPR/VIII/25', 'Kantor Pusat', 'Laporan Progres Pembangunan', 'Proses Disposisi', 'yellow', 'Lihat Detail')}
+                                ${generateTableRowWithButton('10 Nov 2025', '003/PUPR/VIII/25', 'Dinas Keuangan', 'Permintaan Anggaran Triwulan', 'Selesai', 'green', 'Arsip')}
+                                ${generateTableRowWithButton('08 Nov 2025', '004/PUPR/VIII/25', 'BPK', 'Pemberitahuan Audit', 'Belum Didisposisi', 'red', 'Disposisi')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+        }
+
+        /**
+         * Menghasilkan HTML untuk Halaman Surat Keluar.
+         */
+        function generateSuratKeluarContent() {
+            return `
+                <div class="flex justify-between items-center mb-6">
+                    <p class="text-gray-600">Daftar lengkap surat keluar yang telah dibuat dan dikirimkan.</p>
+                    <button onclick="showMessage('Fungsi Buat Surat Baru')" class="flex items-center bg-green-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-green-700 transition shadow-md">
+                        <i data-lucide="file-plus" class="w-4 h-4 mr-2"></i>
+                        Buat Surat Baru
+                    </button>
+                </div>
+
+                <div class="bg-white p-6 rounded-xl shadow-lg">
+                    <div class="mb-4 flex space-x-4">
+                        <input type="text" placeholder="Cari berdasarkan No. Surat atau Perihal..." class="p-2 border border-gray-300 rounded-lg w-full md:w-1/3 focus:ring-blue-accent focus:border-blue-accent">
+                        <select class="p-2 border border-gray-300 rounded-lg focus:ring-blue-accent focus:border-blue-accent">
+                            <option>Semua Status</option>
+                            <option>Draft</option>
+                            <option>Menunggu TTD</option>
+                            <option>Terkirim & Diarsip</option>
+                        </select>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-blue-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tanggal Kirim</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">No. Surat</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tujuan</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Perihal</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-200">
+                                ${generateTableRowWithButton('14 Nov 2025', '035/PUPR/KLR/25', 'Kementerian P.U.', 'Balasan Undangan Rapat', 'Terkirim & Diarsip', 'green', 'Unduh')}
+                                ${generateTableRowWithButton('12 Nov 2025', '036/PUPR/KLR/25', 'Tim Proyek A', 'Surat Tugas Lapangan', 'Terkirim & Diarsip', 'green', 'Unduh')}
+                                ${generateTableRowWithButton('10 Nov 2025', '037/PUPR/KLR/25', 'Kepala Dinas', 'Draft Laporan Akhir', 'Menunggu TTD', 'yellow', 'Edit Draft')}
+                                ${generateTableRowWithButton('05 Nov 2025', '038/PUPR/KLR/25', 'PT. Mitra Karya', 'Permintaan Klarifikasi Dokumen', 'Terkirim & Diarsip', 'green', 'Unduh')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+        }
+
+        // =========================================================
+        // Fungsi Utilitas (Tabel dan Modal)
+        // =========================================================
+
+        /**
+         * Menghasilkan baris tabel untuk Dashboard
+         */
+        function generateTableRow(noSurat, perihal, tanggal, jenis, statusText, statusColor) {
+            const statusClass = {
+                'red': 'bg-red-100 text-red-800',
+                'green': 'bg-green-100 text-green-800',
+                'yellow': 'bg-yellow-100 text-yellow-800',
+                'blue': 'bg-blue-100 text-blue-800'
+            }[statusColor] || 'bg-gray-100 text-gray-800';
+
+            return `
+                <tr>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-[#1a365d]">${noSurat}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${perihal}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${tanggal}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${jenis === 'Masuk' ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800'}">
+                            ${jenis}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${statusClass}">
+                            ${statusText}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <button onclick="showMessage('Aksi untuk Surat: ${noSurat}')" class="text-blue-primary hover:text-blue-700 transition duration-150">Lihat Detail</button>
+                    </td>
+                </tr>
+            `;
+        }
+
+        /**
+         * Menghasilkan baris tabel untuk Surat Masuk/Keluar dengan tombol aksi utama
+         */
+        function generateTableRowWithButton(tanggal, noSurat, pengirimTujuan, perihal, statusText, statusColor, buttonText) {
+            const statusClass = {
+                'red': 'bg-red-100 text-red-800',
+                'green': 'bg-green-100 text-green-800',
+                'yellow': 'bg-yellow-100 text-yellow-800',
+                'blue': 'bg-blue-100 text-blue-800'
+            }[statusColor] || 'bg-gray-100 text-gray-800';
+
+            return `
+                <tr>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${tanggal}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-[#1a365d]">${noSurat}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${pengirimTujuan}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${perihal}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${statusClass}">
+                            ${statusText}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <button onclick="showMessage('${buttonText} Surat: ${noSurat}')" class="bg-blue-accent text-white px-3 py-1 rounded-full text-xs hover:bg-blue-600 transition duration-150 shadow-md">
+                            ${buttonText}
+                        </button>
+                    </td>
+                </tr>
+            `;
+        }
+
+        /**
+         * Menampilkan Modal Kustom (pengganti alert/confirm)
+         */
+        function showMessage(message) {
+            document.getElementById('modal-message').textContent = message;
+            document.getElementById('custom-modal').classList.remove('hidden');
+            document.getElementById('custom-modal').classList.add('flex');
+        }
+
+        /**
+         * Menutup Modal Kustom
+         */
+        function closeModal() {
+            document.getElementById('custom-modal').classList.add('hidden');
+            document.getElementById('custom-modal').classList.remove('flex');
+        }
+    </script>
+</body>
+</html>
